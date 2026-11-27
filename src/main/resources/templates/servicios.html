@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Servicios')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('servicios')}"></div>
+
+    <main class="container-xxl my-4">
+
+        <!-- ===================== TIPOS DE VEHÍCULO ===================== -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-car-front-fill text-primary"></i> Tipos de vehículo</h2>
+            <button type="button" class="btn btn-amarillo shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#modalTipo" data-id="" data-nombre="" data-activo="true">
+                <i class="bi bi-plus-circle-fill"></i> Nuevo tipo
+            </button>
+        </div>
+
+        <div class="card card-panel overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                    <thead>
+                        <tr>
+                            <th class="py-3">Tipo</th>
+                            <th class="py-3">Cupos del parqueadero</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="t : ${tipos}">
+                            <td class="fw-semibold">
+                                <i class="bi me-2 text-warning"
+                                   th:classappend="${#strings.containsIgnoreCase(t.nombre, 'moto')} ? 'bi-bicycle' : 'bi-car-front-fill'"></i>
+                                <span th:text="${t.nombre}"></span>
+                            </td>
+                            <td th:text="${capacidades.get(t.idTipoVehiculo)}"></td>
+                            <td>
+                                <span class="badge text-bg-success" th:if="${t.activo}">Activo</span>
+                                <span class="badge text-bg-secondary" th:unless="${t.activo}">Inactivo</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <button type="button" class="btn btn-outline-warning btn-sm text-dark"
+                                            data-bs-toggle="modal" data-bs-target="#modalTipo"
+                                            th:data-id="${t.idTipoVehiculo}" th:data-nombre="${t.nombre}" th:data-activo="${t.activo}">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <form th:action="@{/servicios/tipo/eliminar}" method="post" class="m-0"
+                                          onsubmit="return confirm('¿Eliminar este tipo de vehículo?');">
+                                        <input type="hidden" name="id" th:value="${t.idTipoVehiculo}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(tipos)}">
+                            <td colspan="4" class="text-center text-secondary py-4">No hay tipos de vehículo.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="small text-secondary mt-2">
+            Los cupos se configuran en <code>application.properties</code> (ej. <code>parqueadero.capacidad.carro=50</code>).
+        </div>
+
+        <!-- ===================== SERVICIOS DE PARQUEADERO ===================== -->
+        <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-primary"></i> Servicios de parqueadero</h2>
+            <button type="button" class="btn btn-amarillo shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#modalServicio"
+                    data-id="" data-categoria="PARQUEADERO" data-nombre="" data-tipo="" data-cobro="HORA"
+                    data-descripcion="" data-costo="" data-activo="true">
+                <i class="bi bi-plus-circle-fill"></i> Nuevo servicio de parqueadero
+            </button>
+        </div>
+
+        <div class="card card-panel overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                    <thead>
+                        <tr>
+                            <th class="py-3">Vehículo</th>
+                            <th class="py-3">Servicio</th>
+                            <th class="py-3">Descripción</th>
+                            <th class="py-3">Cobro</th>
+                            <th class="py-3">Costo</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s : ${serviciosParqueadero}">
+                            <td th:text="${s.tipoVehiculo != null ? s.tipoVehiculo.nombre : '—'}"></td>
+                            <td class="fw-semibold" th:text="${s.nombre}"></td>
+                            <td class="small text-secondary" th:text="${s.descripcion}"></td>
+                            <td th:text="${s.tipoCobroTexto}"></td>
+                            <td th:text="'$' + ${#numbers.formatDecimal(s.costo, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td>
+                                <span class="badge text-bg-success" th:if="${s.activo}">Activo</span>
+                                <span class="badge text-bg-secondary" th:unless="${s.activo}">Inactivo</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <button type="button" class="btn btn-outline-warning btn-sm text-dark"
+                                            data-bs-toggle="modal" data-bs-target="#modalServicio"
+                                            data-categoria="PARQUEADERO"
+                                            th:data-id="${s.idServicioParqueadero}" th:data-nombre="${s.nombre}"
+                                            th:data-tipo="${s.tipoVehiculo != null ? s.tipoVehiculo.idTipoVehiculo : ''}"
+                                            th:data-cobro="${s.tipoCobro}" th:data-descripcion="${s.descripcion}"
+                                            th:data-costo="${#numbers.formatDecimal(s.costo, 1, 'NONE', 0, 'POINT')}"
+                                            th:data-activo="${s.activo}">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <form th:action="@{/servicios/servicio/eliminar}" method="post" class="m-0"
+                                          onsubmit="return confirm('¿Eliminar este servicio?');">
+                                        <input type="hidden" name="id" th:value="${s.idServicioParqueadero}">
+                                        <input type="hidden" name="categoria" value="PARQUEADERO">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(serviciosParqueadero)}">
+                            <td colspan="7" class="text-center text-secondary py-4">No hay servicios de parqueadero.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===================== SERVICIOS DE LAVADO ===================== -->
+        <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-droplet-fill text-primary"></i> Servicios de lavado</h2>
+            <button type="button" class="btn btn-amarillo shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#modalServicio"
+                    data-id="" data-categoria="LAVADO" data-nombre="" data-tipo="" data-cobro=""
+                    data-descripcion="" data-costo="" data-activo="true">
+                <i class="bi bi-plus-circle-fill"></i> Nuevo servicio de lavado
+            </button>
+        </div>
+
+        <div class="card card-panel overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                    <thead>
+                        <tr>
+                            <th class="py-3">Vehículo</th>
+                            <th class="py-3">Servicio</th>
+                            <th class="py-3">Descripción</th>
+                            <th class="py-3">Costo</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s : ${serviciosLavado}">
+                            <td th:text="${s.tipoVehiculo != null ? s.tipoVehiculo.nombre : '—'}"></td>
+                            <td class="fw-semibold" th:text="${s.nombre}"></td>
+                            <td class="small text-secondary" th:text="${s.descripcion}"></td>
+                            <td th:text="'$' + ${#numbers.formatDecimal(s.costo, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td>
+                                <span class="badge text-bg-success" th:if="${s.activo}">Activo</span>
+                                <span class="badge text-bg-secondary" th:unless="${s.activo}">Inactivo</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <button type="button" class="btn btn-outline-warning btn-sm text-dark"
+                                            data-bs-toggle="modal" data-bs-target="#modalServicio"
+                                            data-categoria="LAVADO" data-cobro=""
+                                            th:data-id="${s.idServicioLavado}" th:data-nombre="${s.nombre}"
+                                            th:data-tipo="${s.tipoVehiculo != null ? s.tipoVehiculo.idTipoVehiculo : ''}"
+                                            th:data-descripcion="${s.descripcion}"
+                                            th:data-costo="${#numbers.formatDecimal(s.costo, 1, 'NONE', 0, 'POINT')}"
+                                            th:data-activo="${s.activo}">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <form th:action="@{/servicios/servicio/eliminar}" method="post" class="m-0"
+                                          onsubmit="return confirm('¿Eliminar este servicio?');">
+                                        <input type="hidden" name="id" th:value="${s.idServicioLavado}">
+                                        <input type="hidden" name="categoria" value="LAVADO">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(serviciosLavado)}">
+                            <td colspan="6" class="text-center text-secondary py-4">No hay servicios de lavado.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="small text-secondary mt-3">
+            Si un servicio ya tiene reservas, al eliminarlo solo se desactiva (así el historial no se rompe).
+        </div>
+    </main>
+
+    <!-- ===================== MODAL: TIPO DE VEHÍCULO ===================== -->
+    <div class="modal fade" id="modalTipo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content border-0" style="border-radius: 1rem; overflow: hidden;"
+                  th:action="@{/servicios/tipo/guardar}" method="post">
+                <div class="modal-header card-header-custom border-0 px-4 py-3" style="border-radius: 0 !important;">
+                    <h5 class="modal-title fw-bold" id="tipoTitulo">Tipo de vehículo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" name="id" id="tipoId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="tipoNombre">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" id="tipoNombre" maxlength="20" placeholder="Ej. Carro" required>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="activo" value="true" id="tipoActivo">
+                        <label class="form-check-label fw-semibold" for="tipoActivo">Activo</label>
+                    </div>
+                    <div class="form-text mt-2">Los cupos de cada tipo se ponen en application.properties.</div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-amarillo px-4"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL: SERVICIO (parqueadero y lavado) ===================== -->
+    <div class="modal fade" id="modalServicio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content border-0" style="border-radius: 1rem; overflow: hidden;"
+                  th:action="@{/servicios/servicio/guardar}" method="post">
+                <div class="modal-header card-header-custom border-0 px-4 py-3" style="border-radius: 0 !important;">
+                    <h5 class="modal-title fw-bold" id="servTitulo">Servicio</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" name="id" id="servId">
+                    <input type="hidden" name="categoria" id="servCategoria">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="servNombre">Nombre del servicio</label>
+                        <input type="text" class="form-control" name="nombre" id="servNombre" maxlength="30" placeholder="Ej. Por hora" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="servTipo">Tipo de vehículo</label>
+                        <select class="form-select" name="idTipoVehiculo" id="servTipo" required>
+                            <option value="">Selecciona…</option>
+                            <option th:each="t : ${tipos}" th:value="${t.idTipoVehiculo}" th:text="${t.nombre}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="grupoCobro">
+                        <label class="form-label fw-semibold" for="servCobro">Tipo de cobro</label>
+                        <select class="form-select" name="tipoCobro" id="servCobro">
+                            <option value="HORA">Por hora</option>
+                            <option value="DIA">Por día</option>
+                            <option value="MES">Por mes</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="servDescripcion">Descripción</label>
+                        <textarea class="form-control" name="descripcion" id="servDescripcion" maxlength="200" rows="2"
+                                  placeholder="Ej. Parqueo cubierto por una hora" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="servCosto">Costo</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="costo" id="servCosto" min="0" step="100" placeholder="Ej. 4000" required>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="activo" value="true" id="servActivo">
+                        <label class="form-check-label fw-semibold" for="servActivo">Activo</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-amarillo px-4"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <script>
+        (function () {
+            function $(id) { return document.getElementById(id); }
+
+            // Los botones llevan los datos en atributos data-*; al abrir la ventana se copian al formulario
+            $('modalTipo').addEventListener('show.bs.modal', function (e) {
+                var b = e.relatedTarget;
+                var id = b.getAttribute('data-id') || '';
+                $('tipoId').value = id;
+                $('tipoNombre').value = b.getAttribute('data-nombre') || '';
+                $('tipoActivo').checked = b.getAttribute('data-activo') !== 'false';
+                $('tipoTitulo').textContent = id ? 'Editar tipo de vehículo' : 'Nuevo tipo de vehículo';
+            });
+
+            $('modalServicio').addEventListener('show.bs.modal', function (e) {
+                var b = e.relatedTarget;
+                var id = b.getAttribute('data-id') || '';
+                var cat = b.getAttribute('data-categoria');
+                var esParq = (cat === 'PARQUEADERO');
+
+                $('servId').value = id;
+                $('servCategoria').value = cat;
+                $('servNombre').value = b.getAttribute('data-nombre') || '';
+                $('servTipo').value = b.getAttribute('data-tipo') || '';
+                $('servCobro').value = b.getAttribute('data-cobro') || 'HORA';
+                $('servDescripcion').value = b.getAttribute('data-descripcion') || '';
+                $('servCosto').value = b.getAttribute('data-costo') || '';
+                $('servActivo').checked = b.getAttribute('data-activo') !== 'false';
+
+                $('grupoCobro').classList.toggle('d-none', !esParq);
+                $('servCobro').disabled = !esParq;   // el lavado no tiene tipo de cobro
+                $('servTitulo').textContent = (id ? 'Editar' : 'Nuevo') + ' servicio de ' + (esParq ? 'parqueadero' : 'lavado');
+            });
+        })();
+    </script>
+</body>
+</html>

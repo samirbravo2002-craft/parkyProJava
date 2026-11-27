@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Detalle del limpiador')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('agregar')}"></div>
+
+    <main class="container-xxl my-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card card-custom">
+
+                    <div class="card-header-custom p-4 text-center">
+                        <i class="bi bi-info-circle-fill text-warning fs-1"></i>
+                        <h2 class="fw-bold mb-0 mt-2">Detalle del Limpiador</h2>
+                        <small class="text-secondary">Información completa en el sistema</small>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5 bg-white rounded-bottom">
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="fw-bold text-secondary"><i class="bi bi-card-text text-dark me-2"></i> Documento:</span>
+                                <span class="text-dark fw-semibold" th:text="${limpiador.tipoDocumento + ' ' + limpiador.numeroDocumento}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="fw-bold text-secondary"><i class="bi bi-person text-dark me-2"></i> Nombre:</span>
+                                <span class="text-dark fw-semibold" th:text="${limpiador.nombre}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="fw-bold text-secondary"><i class="bi bi-person text-dark me-2"></i> Apellido:</span>
+                                <span class="text-dark fw-semibold" th:text="${limpiador.apellido}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="fw-bold text-secondary"><i class="bi bi-envelope text-dark me-2"></i> Correo:</span>
+                                <span class="text-dark fw-semibold" th:text="${limpiador.correo}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="fw-bold text-secondary"><i class="bi bi-telephone text-dark me-2"></i> Celular:</span>
+                                <span class="text-dark fw-semibold" th:text="${limpiador.celular}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="fw-bold text-secondary"><i class="bi bi-toggle-on text-dark me-2"></i> Estado:</span>
+                                <span class="text-dark fw-semibold" th:text="${limpiador.activo} ? 'Activo' : 'Inactivo'"></span>
+                            </li>
+                        </ul>
+
+                        <div class="text-center">
+                            <a th:href="@{/agregar}" class="btn btn-amarillo w-100 py-2"><i class="bi bi-arrow-left"></i> Volver a la lista</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

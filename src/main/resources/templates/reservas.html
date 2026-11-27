@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Historial de reservas')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('reservas')}"></div>
+
+    <main class="container-xxl my-4">
+
+        <ul th:replace="~{fragments/layout :: reservasTabs('historial')}"></ul>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-receipt text-primary"></i> Historial de reservas</h2>
+
+            <form th:action="@{/reservas}" method="get" class="d-flex gap-2">
+                <input type="text" name="q" th:value="${q}" class="form-control" placeholder="Buscar placa o voucher">
+                <button type="submit" class="btn btn-amarillo"><i class="bi bi-search"></i></button>
+                <a th:href="@{/reservas}" class="btn btn-outline-secondary" th:if="${!#strings.isEmpty(q)}">Limpiar</a>
+            </form>
+        </div>
+
+        <div class="card card-panel overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-custom small">
+                    <thead>
+                        <tr>
+                            <th class="py-3 ps-3">Voucher</th>
+                            <th class="py-3">Placa</th>
+                            <th class="py-3">Vehículo</th>
+                            <th class="py-3">Cliente</th>
+                            <th class="py-3">Parqueadero</th>
+                            <th class="py-3">Lavado</th>
+                            <th class="py-3">Fecha</th>
+                            <th class="py-3">Entrada</th>
+                            <th class="py-3">Salida</th>
+                            <th class="py-3">Pago</th>
+                            <th class="py-3 text-end">Total</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${reservas}">
+                            <td class="ps-3 fw-semibold" th:text="${r.codigoVoucher}"></td>
+                            <td><span class="badge text-bg-dark fs-6" th:text="${r.vehiculo.placa}"></span></td>
+                            <td th:text="${r.tipoVehiculo != null ? r.tipoVehiculo.nombre : '—'}"></td>
+                            <td th:text="${r.cliente.nombreCompleto}"></td>
+                            <td th:text="${r.servicioParqueadero.nombre}"></td>
+                            <td th:text="${r.servicioLavado != null} ? ${r.servicioLavado.nombre} : '—'"></td>
+                            <td th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${#temporals.format(r.horaEntrada, 'HH:mm')}"></td>
+                            <td th:text="${r.horaSalida != null} ? ${#temporals.format(r.horaSalida, 'HH:mm')} : '—'"></td>
+                            <td th:text="${r.metodoPago}"></td>
+                            <td class="text-end fw-bold" th:text="'$' + ${#numbers.formatDecimal(r.total, 1, 'POINT', 0, 'COMMA')}"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${r.activa} ? 'text-bg-success' : 'text-bg-secondary'"
+                                      th:text="${r.estadoTexto}"></span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <a th:href="@{/reservas/voucher/{id}(id=${r.idReserva})}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    <form th:if="${r.activa}" th:action="@{/reservas/salida}" method="post" class="m-0"
+                                          onsubmit="return confirm('¿Registrar la salida de este vehículo?');">
+                                        <input type="hidden" name="id" th:value="${r.idReserva}">
+                                        <button type="submit" class="btn btn-outline-dark btn-sm text-nowrap">
+                                            <i class="bi bi-box-arrow-right"></i> Salida
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(reservas)}">
+                            <td colspan="13" class="text-center text-secondary py-5">
+                                <i class="bi bi-inbox fs-1 d-block"></i>
+                                No hay reservas para mostrar.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="small text-secondary mt-2">
+            Un vehículo ocupa cupo mientras su reserva esté "En parqueadero". Al registrar la salida, el cupo se libera.
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

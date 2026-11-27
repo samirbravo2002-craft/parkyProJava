@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Voucher')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('reservas')}"></div>
+
+    <main class="container-xxl my-4">
+
+        <ul th:replace="~{fragments/layout :: reservasTabs('historial')}"></ul>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-5">
+
+                <div class="card card-custom voucher-card">
+
+                    <div class="card-header-custom p-4 text-center">
+                        <img th:src="@{/img/logo.png}" alt="ParkyPro" height="60">
+                        <h3 class="fw-bold mb-0 mt-1">ParkyPro</h3>
+                        <small class="text-secondary">Comprobante de reserva</small>
+                    </div>
+
+                    <div class="card-body p-4 bg-white rounded-bottom">
+
+                        <div class="text-center mb-3">
+                            <div class="small text-secondary">Voucher</div>
+                            <div class="fw-bold fs-5" th:text="${reserva.codigoVoucher}">VCH-00000000-00000</div>
+                            <div class="badge text-bg-success mt-1"><i class="bi bi-check-circle-fill"></i> Pago recibido</div>
+                            <div class="badge mt-1"
+                                 th:classappend="${reserva.activa} ? 'text-bg-warning' : 'text-bg-secondary'"
+                                 th:text="${reserva.estadoTexto}"></div>
+                        </div>
+
+                        <div class="text-center py-3 mb-3 rounded-3" style="background:#f4f6fa;">
+                            <div class="small text-secondary">Placa</div>
+                            <div class="display-6 fw-bold" th:text="${reserva.vehiculo.placa}">ABC123</div>
+                            <div class="text-secondary" th:text="${reserva.tipoVehiculo != null ? reserva.tipoVehiculo.nombre : ''}">Carro</div>
+                        </div>
+
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-secondary">Cliente</span>
+                                <span class="fw-semibold text-end">
+                                    <span th:text="${reserva.cliente.nombreCompleto}"></span><br>
+                                    <small class="text-secondary" th:text="${reserva.cliente.usuario.tipoDocumento + ' ' + reserva.cliente.noDocumento}"></small>
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-secondary">Fecha</span>
+                                <span class="fw-semibold" th:text="${#temporals.format(reserva.fecha, 'dd/MM/yyyy')}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-secondary">Hora de entrada</span>
+                                <span class="fw-semibold" th:text="${#temporals.format(reserva.horaEntrada, 'HH:mm')}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0" th:if="${reserva.horaSalida != null}">
+                                <span class="text-secondary">Hora de salida</span>
+                                <span class="fw-semibold" th:text="${#temporals.format(reserva.horaSalida, 'HH:mm')}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-secondary">Parqueadero (<span th:text="${reserva.servicioParqueadero.nombre + ' · ' + reserva.servicioParqueadero.tipoCobroTexto}"></span>)</span>
+                                <span class="fw-semibold" th:text="'$' + ${#numbers.formatDecimal(reserva.valorParqueadero, 1, 'POINT', 0, 'COMMA')}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0" th:if="${reserva.servicioLavado != null}">
+                                <span class="text-secondary">Lavado (<span th:text="${reserva.servicioLavado.nombre}"></span>)</span>
+                                <span class="fw-semibold" th:text="'$' + ${#numbers.formatDecimal(reserva.valorLavado, 1, 'POINT', 0, 'COMMA')}"></span>
+                            </li>
+                        </ul>
+
+                        <div class="d-flex justify-content-between align-items-center py-3 border-top border-bottom border-2 border-dark mb-3">
+                            <span class="fw-bold fs-5">TOTAL</span>
+                            <span class="fw-bold fs-3" th:text="'$' + ${#numbers.formatDecimal(reserva.total, 1, 'POINT', 0, 'COMMA')}"></span>
+                        </div>
+
+                        <ul class="list-group list-group-flush mb-3 small">
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-secondary">Método de pago</span>
+                                <span class="fw-semibold" th:text="${reserva.metodoPago}"></span>
+                            </li>
+                            <!-- Estos tres solo aparecen justo después de generar la reserva -->
+                            <li class="list-group-item d-flex justify-content-between px-0" th:if="${referenciaPago != null}">
+                                <span class="text-secondary">Referencia</span>
+                                <span class="fw-semibold text-end" th:text="${referenciaPago}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0" th:if="${montoRecibido != null}">
+                                <span class="text-secondary">Recibido</span>
+                                <span class="fw-semibold" th:text="'$' + ${#numbers.formatDecimal(montoRecibido, 1, 'POINT', 0, 'COMMA')}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0" th:if="${cambio != null}">
+                                <span class="text-secondary">Cambio</span>
+                                <span class="fw-semibold" th:text="'$' + ${#numbers.formatDecimal(cambio, 1, 'POINT', 0, 'COMMA')}"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-secondary">Atendido por</span>
+                                <span class="fw-semibold" th:text="${reserva.usuarioRegistra.nombreCompleto}"></span>
+                            </li>
+                        </ul>
+
+                        <p class="text-center text-secondary small mb-0">
+                            Conserve este comprobante hasta retirar su vehículo.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3 no-print">
+                    <button type="button" class="btn btn-amarillo flex-fill" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </button>
+                    <a th:href="@{/reservas/nueva}" class="btn btn-outline-dark flex-fill">
+                        <i class="bi bi-plus-circle"></i> Nueva reserva
+                    </a>
+                    <a th:href="@{/reservas}" class="btn btn-outline-secondary flex-fill">
+                        <i class="bi bi-receipt"></i> Historial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

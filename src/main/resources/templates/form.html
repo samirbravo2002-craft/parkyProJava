@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cliente')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('agregar')}"></div>
+
+    <main class="container-xxl my-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card card-custom">
+
+                    <div class="card-header-custom p-4 text-center">
+                        <i class="bi bi-person-plus-fill text-warning fs-1"></i>
+                        <h2 class="fw-bold mb-0 mt-2" th:text="${cliente.nuevo} ? 'Nuevo Cliente' : 'Editar Cliente'"></h2>
+                        <small class="text-secondary">Gestión de control de estacionamiento</small>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5 bg-white rounded-bottom">
+                        <form th:action="@{/guardarCliente}" th:object="${cliente}" method="post">
+
+                            <input type="hidden" th:field="*{nuevo}">
+
+                            <div class="alert alert-danger py-2 small" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-5">
+                                    <label class="form-label fw-semibold text-dark" for="tipoDocumento">Tipo de documento</label>
+                                    <select class="form-select" th:field="*{tipoDocumento}">
+                                        <option value="">Selecciona…</option>
+                                        <option value="CC">Cédula de ciudadanía</option>
+                                        <option value="CE">Cédula de extranjería</option>
+                                        <option value="TI">Tarjeta de identidad</option>
+                                        <option value="PAS">Pasaporte</option>
+                                        <option value="PPT">PPT</option>
+                                        <option value="NIT">NIT</option>
+                                    </select>
+                                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('tipoDocumento')}" th:errors="*{tipoDocumento}"></div>
+                                </div>
+                                <div class="col-sm-7">
+                                    <label class="form-label fw-semibold text-dark" for="noDocumento">Número de documento</label>
+                                    <input type="number" class="form-control" th:field="*{noDocumento}" placeholder="Ej. 1012345678"
+                                           th:readonly="${!cliente.nuevo}">
+                                    <div class="form-text" th:unless="${cliente.nuevo}">El documento no se puede cambiar.</div>
+                                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('noDocumento')}" th:errors="*{noDocumento}"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark" for="nombre">Nombre</label>
+                                <input type="text" class="form-control" th:field="*{nombre}" maxlength="20" placeholder="Ej. Juan">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark" for="apellido">Apellido</label>
+                                <input type="text" class="form-control" th:field="*{apellido}" maxlength="20" placeholder="Ej. Gómez">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('apellido')}" th:errors="*{apellido}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark" for="correo">Correo</label>
+                                <input type="email" class="form-control" th:field="*{correo}" maxlength="100" placeholder="correo@ejemplo.com">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-dark" for="celular">Celular</label>
+                                <input type="text" class="form-control" th:field="*{celular}" maxlength="20" inputmode="numeric" placeholder="3001234567">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('celular')}" th:errors="*{celular}"></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a th:href="@{/agregar}" class="text-decoration-none text-secondary fw-semibold"><i class="bi bi-arrow-left"></i> <u>Volver</u></a>
+                                <button type="submit" class="btn btn-amarillo px-4 py-2"><i class="bi bi-save"></i> Guardar</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nueva reserva')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('reservas')}"></div>
+
+    <main class="container-xxl my-4">
+
+        <ul th:replace="~{fragments/layout :: reservasTabs('nueva')}"></ul>
+
+        <form id="formReserva" th:action="@{/reservas/guardar}" th:object="${form}" method="post" novalidate>
+
+            <div class="row g-4">
+
+                <!-- ============ Columna izquierda: datos ============ -->
+                <div class="col-lg-8">
+
+                    <!-- Vehículo y cliente -->
+                    <div class="card card-panel mb-4">
+                        <div class="card-header"><i class="bi bi-car-front-fill me-2"></i> Vehículo y cliente</div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold" for="placa">Placa</label>
+                                    <input type="text" id="placa" class="form-control form-control-lg text-uppercase fw-bold"
+                                           th:field="*{placa}" maxlength="7" placeholder="ABC123" autocomplete="off"
+                                           list="listaPlacas" autofocus>
+                                    <!-- Placas ya registradas: al escribir una, se llenan el tipo y el cliente -->
+                                    <datalist id="listaPlacas">
+                                        <option th:each="v : ${vehiculos}" th:value="${v.placa}"
+                                                th:attr="data-tipo=${v.tipoVehiculo != null ? v.tipoVehiculo.idTipoVehiculo : ''},data-cliente=${v.cliente.noDocumento}"
+                                                th:text="${v.cliente.nombreCompleto}"></option>
+                                    </datalist>
+                                    <div class="form-text" id="ayudaPlaca">Si la placa ya está registrada se completan el tipo y el cliente.</div>
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label fw-semibold d-block">Tipo de vehículo</label>
+                                    <div class="d-flex gap-3 flex-wrap">
+                                        <th:block th:each="t : ${tipos}">
+                                            <input type="radio" class="btn-check" th:field="*{idTipoVehiculo}"
+                                                   th:value="${t.idTipoVehiculo}" autocomplete="off">
+                                            <label class="btn btn-outline-dark px-4 py-2" th:for="${#ids.prev('idTipoVehiculo')}">
+                                                <i class="bi fs-4 d-block"
+                                                   th:classappend="${#strings.containsIgnoreCase(t.nombre, 'moto')} ? 'bi-bicycle' : 'bi-car-front-fill'"></i>
+                                                <span th:text="${t.nombre}">Carro</span>
+                                            </label>
+                                        </th:block>
+                                    </div>
+                                    <div class="text-danger small mt-2" th:if="${#lists.isEmpty(tipos)}">
+                                        No hay tipos de vehículo activos. Créalos en la sección Servicios.
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="noDocumentoCliente">Cliente</label>
+                                    <select class="form-select form-select-lg" th:field="*{noDocumentoCliente}">
+                                        <option value="">Selecciona el cliente…</option>
+                                        <option th:each="c : ${clientes}" th:value="${c.noDocumento}"
+                                                th:text="${c.noDocumento + ' — ' + c.nombreCompleto}"></option>
+                                    </select>
+                                    <div class="form-text text-danger" th:if="${#lists.isEmpty(clientes)}">
+                                        No hay clientes. Agrégalos en la sección Agregar.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Servicio de parqueadero -->
+                    <div class="card card-panel mb-4">
+                        <div class="card-header"><i class="bi bi-clock-history me-2"></i> Servicio de parqueadero</div>
+                        <div class="card-body p-4">
+                            <label class="form-label fw-semibold" for="idServicioParqueadero">Servicio</label>
+                            <select class="form-select form-select-lg" th:field="*{idServicioParqueadero}">
+                                <option value="">Primero elige el tipo de vehículo…</option>
+                                <option th:each="s : ${serviciosParqueadero}"
+                                        th:value="${s.idServicioParqueadero}"
+                                        th:attr="data-tipo=${s.tipoVehiculo.idTipoVehiculo},data-precio=${#numbers.formatDecimal(s.costo, 1, 'NONE', 0, 'POINT')}"
+                                        th:text="${s.nombre + ' (' + s.tipoCobroTexto + ') — $' + #numbers.formatDecimal(s.costo, 1, 'POINT', 0, 'COMMA')}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Lavado -->
+                    <div class="card card-panel">
+                        <div class="card-header"><i class="bi bi-droplet-fill me-2"></i> Servicio complementario: lavado</div>
+                        <div class="card-body p-4">
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input" type="checkbox" id="chkLavado"
+                                       th:checked="${form.idServicioLavado != null}">
+                                <label class="form-check-label fw-semibold" for="chkLavado">Incluir lavado del vehículo</label>
+                            </div>
+
+                            <div id="bloqueLavado" class="row g-3 mt-1 d-none">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-semibold" for="idServicioLavado">Tipo de lavado</label>
+                                    <select class="form-select" th:field="*{idServicioLavado}">
+                                        <option value="">Selecciona el lavado…</option>
+                                        <option th:each="s : ${serviciosLavado}"
+                                                th:value="${s.idServicioLavado}"
+                                                th:attr="data-tipo=${s.tipoVehiculo.idTipoVehiculo},data-precio=${#numbers.formatDecimal(s.costo, 1, 'NONE', 0, 'POINT')}"
+                                                th:text="${s.nombre + ' — $' + #numbers.formatDecimal(s.costo, 1, 'POINT', 0, 'COMMA')}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ Columna derecha: resumen ============ -->
+                <div class="col-lg-4">
+                    <div class="card card-panel position-sticky" style="top: 1rem;">
+                        <div class="card-header"><i class="bi bi-receipt me-2"></i> Resumen</div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Placa</span>
+                                <span class="fw-bold" id="resPlaca">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Parqueadero</span>
+                                <span class="fw-semibold" id="resParq">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Lavado</span>
+                                <span class="fw-semibold" id="resLav">—</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="fw-bold fs-5">Total</span>
+                                <span class="fw-bold fs-3" id="resTotal">$0</span>
+                            </div>
+
+                            <div id="avisoCliente" class="alert alert-warning py-2 small d-none" role="alert"></div>
+
+                            <button type="button" id="btnGenerar" class="btn btn-amarillo btn-lg w-100">
+                                <i class="bi bi-credit-card-2-front"></i> Generar reserva
+                            </button>
+                            <div class="form-text text-center mt-2">Al generar se elige el método de pago y se crea el voucher.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ Ventana de pago ============ -->
+            <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content border-0" style="border-radius: 1rem; overflow: hidden;">
+                        <div class="modal-header card-header-custom border-0 px-4 py-3" style="border-radius: 0 !important;">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-wallet2 text-warning me-2"></i> Pago de la reserva</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="row g-4">
+
+                                <!-- Resumen del cobro -->
+                                <div class="col-md-5">
+                                    <div class="p-3 rounded-3" style="background:#f4f6fa;">
+                                        <div class="small text-secondary">Placa</div>
+                                        <div class="fs-3 fw-bold" id="pagoPlaca">—</div>
+                                        <div class="small text-secondary mt-2">Cliente</div>
+                                        <div class="fw-semibold" id="pagoCliente">—</div>
+                                        <div class="small text-secondary mt-2">Parqueadero</div>
+                                        <div class="fw-semibold" id="pagoParq">—</div>
+                                        <div class="small text-secondary mt-2">Lavado</div>
+                                        <div class="fw-semibold" id="pagoLav">—</div>
+                                        <hr>
+                                        <div class="small text-secondary">Total a pagar</div>
+                                        <div class="fs-2 fw-bold" id="pagoTotal">$0</div>
+                                    </div>
+                                </div>
+
+                                <!-- Métodos (salen de la tabla metodo_pago) -->
+                                <div class="col-md-7">
+                                    <label class="form-label fw-semibold">Método de pago</label>
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <th:block th:each="m : ${metodosPago}">
+                                            <input type="radio" class="btn-check" name="idMetodoPago" autocomplete="off"
+                                                   th:id="'mp-' + ${m.idMetodoPago}" th:value="${m.idMetodoPago}"
+                                                   th:attr="data-efectivo=${m.efectivo}"
+                                                   th:checked="${form.idMetodoPago != null and form.idMetodoPago == m.idMetodoPago}">
+                                            <label class="btn btn-outline-dark" th:for="'mp-' + ${m.idMetodoPago}">
+                                                <i class="bi" th:classappend="${m.icono}"></i> <span th:text="${m.nombre}">Efectivo</span>
+                                            </label>
+                                        </th:block>
+                                    </div>
+                                    <div class="text-danger small mb-3" th:if="${#lists.isEmpty(metodosPago)}">
+                                        No hay métodos de pago activos en la tabla metodo_pago.
+                                    </div>
+
+                                    <!-- Efectivo -->
+                                    <div id="panel-efectivo" class="panel-pago d-none">
+                                        <label class="form-label fw-semibold" for="efMonto">Monto recibido</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="efMonto" min="0" step="100" placeholder="0">
+                                            <button type="button" class="btn btn-outline-secondary" id="btnExacto">Monto exacto</button>
+                                        </div>
+                                        <div class="mt-2">Cambio a devolver: <b id="efCambio">$0</b></div>
+                                    </div>
+
+                                    <!-- Otros métodos -->
+                                    <div id="panel-otro" class="panel-pago d-none">
+                                        <label class="form-label fw-semibold" for="otroRef">Referencia o N.º de aprobación <span class="text-secondary fw-normal">(opcional)</span></label>
+                                        <input type="text" class="form-control" id="otroRef" maxlength="60" placeholder="Ej. 458921">
+                                        <div class="form-text">Se muestra en el voucher para que el cliente la conserve.</div>
+                                    </div>
+
+                                    <div id="avisoPago" class="alert alert-warning py-2 small mt-3 mb-0 d-none" role="alert"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 px-4 pb-4">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-amarillo px-4" id="btnConfirmar">
+                                <i class="bi bi-check2-circle"></i> Confirmar pago y generar voucher
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Los llena el script al confirmar el pago -->
+            <input type="hidden" name="referenciaPago" id="referenciaPago">
+            <input type="hidden" name="montoRecibido" id="montoRecibido">
+        </form>
+    </main>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <script>
+        (function () {
+            function $(id) { return document.getElementById(id); }
+            function fmt(n) { return '$' + Number(n || 0).toLocaleString('es-CO'); }
+
+            var form = $('formReserva');
+            var placa = $('placa');
+            var selCli = document.querySelector('select[name="noDocumentoCliente"]');
+            var selParq = document.querySelector('select[name="idServicioParqueadero"]');
+            var selLav = document.querySelector('select[name="idServicioLavado"]');
+            var chk = $('chkLavado');
+            var bloque = $('bloqueLavado');
+            var ayudaPlaca = $('ayudaPlaca');
+            var textoAyuda = ayudaPlaca.textContent;
+
+            function tipoActual() {
+                var r = document.querySelector('input[name="idTipoVehiculo"]:checked');
+                return r ? r.value : null;
+            }
+
+            // Solo se muestran los servicios del tipo de vehículo elegido
+            function filtrar(sel) {
+                var t = tipoActual();
+                Array.prototype.forEach.call(sel.options, function (o) {
+                    if (!o.value) { return; }
+                    var ok = t !== null && o.getAttribute('data-tipo') === t;
+                    o.hidden = !ok;
+                    o.disabled = !ok;
+                });
+                var cur = sel.options[sel.selectedIndex];
+                if (cur && cur.value && cur.disabled) { sel.value = ''; }
+            }
+
+            function precio(sel) {
+                if (sel.disabled) { return 0; }
+                var o = sel.options[sel.selectedIndex];
+                return (o && o.value) ? parseFloat(o.getAttribute('data-precio')) : 0;
+            }
+
+            function textoOpcion(sel) {
+                var o = sel.options[sel.selectedIndex];
+                return (o && o.value && !sel.disabled) ? o.text : '—';
+            }
+
+            function totalActual() {
+                return precio(selParq) + (chk.checked ? precio(selLav) : 0);
+            }
+
+            function actualizar() {
+                filtrar(selParq);
+                filtrar(selLav);
+                var usaLavado = chk.checked;
+                bloque.classList.toggle('d-none', !usaLavado);
+                selLav.disabled = !usaLavado;     // un campo deshabilitado no se envía al servidor
+
+                var p = precio(selParq);
+                var l = usaLavado ? precio(selLav) : 0;
+                $('resPlaca').textContent = placa.value || '—';
+                $('resParq').textContent = p ? fmt(p) : '—';
+                $('resLav').textContent = l ? fmt(l) : '—';
+                $('resTotal').textContent = fmt(p + l);
+            }
+
+            // Si la placa ya existe, se marcan su tipo y su cliente
+            function completarVehiculo() {
+                var encontrado = null;
+                document.querySelectorAll('#listaPlacas option').forEach(function (o) {
+                    if (o.value === placa.value) { encontrado = o; }
+                });
+                if (!encontrado) {
+                    ayudaPlaca.textContent = placa.value.length >= 5 ? 'Placa nueva: se registrará con el cliente y el tipo elegidos.' : textoAyuda;
+                    return;
+                }
+                var t = encontrado.getAttribute('data-tipo');
+                if (t) {
+                    var r = document.querySelector('input[name="idTipoVehiculo"][value="' + t + '"]');
+                    if (r) { r.checked = true; }
+                }
+                var c = encontrado.getAttribute('data-cliente');
+                if (c) { selCli.value = c; }
+                ayudaPlaca.textContent = 'Vehículo registrado: se cargaron su tipo y su cliente.';
+            }
+
+            // Placa: mayúsculas y sin espacios ni símbolos
+            placa.addEventListener('input', function () {
+                placa.value = placa.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                completarVehiculo();
+                actualizar();
+            });
+            document.querySelectorAll('input[name="idTipoVehiculo"]').forEach(function (r) {
+                r.addEventListener('change', actualizar);
+            });
+            [selParq, selLav, chk].forEach(function (el) { el.addEventListener('change', actualizar); });
+
+            // ---------- Paso 1: validar datos y abrir la ventana de pago ----------
+            function avisar(msg) {
+                var a = $('avisoCliente');
+                a.textContent = msg;
+                a.classList.remove('d-none');
+            }
+
+            function generar() {
+                $('avisoCliente').classList.add('d-none');
+                if (!/^[A-Z0-9]{5,7}$/.test(placa.value)) { return avisar('Escribe una placa válida (5 a 7 letras o números).'); }
+                if (!tipoActual()) { return avisar('Selecciona el tipo de vehículo.'); }
+                if (!selCli.value) { return avisar('Selecciona el cliente.'); }
+                if (!selParq.value) { return avisar('Selecciona el servicio de parqueadero.'); }
+                if (chk.checked && !selLav.value) { return avisar('Selecciona el tipo de lavado.'); }
+
+                $('pagoPlaca').textContent = placa.value;
+                $('pagoCliente').textContent = textoOpcion(selCli);
+                $('pagoParq').textContent = textoOpcion(selParq);
+                $('pagoLav').textContent = chk.checked ? textoOpcion(selLav) : '—';
+                $('pagoTotal').textContent = fmt(totalActual());
+                $('avisoPago').classList.add('d-none');
+                mostrarPanel();
+                calcularCambio();
+                bootstrap.Modal.getOrCreateInstance($('modalPago')).show();
+            }
+
+            $('btnGenerar').addEventListener('click', generar);
+            // Enter en la placa no debe enviar el formulario sin pasar por el pago
+            form.addEventListener('submit', function (e) { e.preventDefault(); generar(); });
+
+            // ---------- Paso 2: método de pago ----------
+            function metodo() {
+                return document.querySelector('input[name="idMetodoPago"]:checked');
+            }
+            function esEfectivo() {
+                var m = metodo();
+                return m !== null && m.getAttribute('data-efectivo') === 'true';
+            }
+
+            function mostrarPanel() {
+                document.querySelectorAll('.panel-pago').forEach(function (p) { p.classList.add('d-none'); });
+                if (!metodo()) { return; }
+                $(esEfectivo() ? 'panel-efectivo' : 'panel-otro').classList.remove('d-none');
+            }
+
+            document.querySelectorAll('input[name="idMetodoPago"]').forEach(function (r) {
+                r.addEventListener('change', mostrarPanel);
+            });
+
+            function calcularCambio() {
+                var v = parseFloat($('efMonto').value);
+                var c = isNaN(v) ? 0 : v - totalActual();
+                $('efCambio').textContent = c >= 0 ? fmt(c) : 'falta ' + fmt(-c);
+            }
+            $('efMonto').addEventListener('input', calcularCambio);
+            $('btnExacto').addEventListener('click', function () {
+                $('efMonto').value = totalActual();
+                calcularCambio();
+            });
+
+            function avisoPago(msg) {
+                var a = $('avisoPago');
+                a.textContent = msg;
+                a.classList.remove('d-none');
+            }
+
+            // ---------- Paso 3: confirmar, enviar y mostrar el voucher ----------
+            $('btnConfirmar').addEventListener('click', function () {
+                var total = totalActual();
+                if (!metodo()) { return avisoPago('Selecciona un método de pago.'); }
+
+                $('montoRecibido').value = '';
+                $('referenciaPago').value = '';
+
+                if (esEfectivo()) {
+                    var v = parseFloat($('efMonto').value);
+                    if (isNaN(v) || v < total) { return avisoPago('El monto recibido debe ser igual o mayor al total.'); }
+                    $('montoRecibido').value = v;
+                } else {
+                    $('referenciaPago').value = $('otroRef').value.trim();
+                }
+
+                this.disabled = true;     // evita doble clic = doble reserva
+                form.submit();            // submit() directo no dispara el evento "submit"
+            });
+
+            actualizar();
+        })();
+    </script>
+</body>
+</html>

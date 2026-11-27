@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Agregar')}"></head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header('agregar')}"></div>
+
+    <main class="container-xxl my-4">
+
+        <!-- ===================== CLIENTES ===================== -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-primary"></i> Clientes</h2>
+            <a th:href="@{/nuevoCliente}" class="btn btn-amarillo shadow-sm">
+                <i class="bi bi-plus-circle-fill"></i> Nuevo Cliente
+            </a>
+        </div>
+
+        <div class="card card-panel overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                    <thead>
+                        <tr>
+                            <th class="py-3">Documento</th>
+                            <th class="py-3">Nombre</th>
+                            <th class="py-3">Apellido</th>
+                            <th class="py-3">Correo</th>
+                            <th class="py-3">Celular</th>
+                            <th class="py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="cli : ${listaClientes}">
+                            <td class="fw-semibold">
+                                <small class="text-secondary" th:text="${cli.usuario.tipoDocumento}"></small>
+                                <span th:text="${cli.noDocumento}"></span>
+                            </td>
+                            <td th:text="${cli.usuario.nombre}"></td>
+                            <td th:text="${cli.usuario.apellido}"></td>
+                            <td th:text="${cli.usuario.correo}"></td>
+                            <td th:text="${cli.usuario.celular}"></td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <a th:href="@{/detalle(id=${cli.noDocumento})}" class="btn btn-outline-primary btn-sm" title="Ver detalles"><i class="bi bi-eye"></i> Ver</a>
+                                    <a th:href="@{/editarCliente(id=${cli.noDocumento})}" class="btn btn-outline-warning btn-sm text-dark" title="Editar"><i class="bi bi-pencil"></i> Editar</a>
+                                    <form th:action="@{/eliminarCliente}" method="post" class="m-0"
+                                          onsubmit="return confirm('¿Eliminar este cliente?');">
+                                        <input type="hidden" name="id" th:value="${cli.noDocumento}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar"><i class="bi bi-trash"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(listaClientes)}">
+                            <td colspan="6" class="text-center text-secondary py-4">No hay clientes registrados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===================== LIMPIADORES ===================== -->
+        <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-droplet-fill text-primary"></i> Limpiadores</h2>
+            <a th:href="@{/nuevoLimpiador}" class="btn btn-amarillo shadow-sm">
+                <i class="bi bi-plus-circle-fill"></i> Nuevo Limpiador
+            </a>
+        </div>
+
+        <div class="card card-panel overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-custom">
+                    <thead>
+                        <tr>
+                            <th class="py-3">Documento</th>
+                            <th class="py-3">Nombre</th>
+                            <th class="py-3">Apellido</th>
+                            <th class="py-3">Correo</th>
+                            <th class="py-3">Celular</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="limp : ${listaLimpiadores}">
+                            <td class="fw-semibold">
+                                <small class="text-secondary" th:text="${limp.tipoDocumento}"></small>
+                                <span th:text="${limp.numeroDocumento}"></span>
+                            </td>
+                            <td th:text="${limp.nombre}"></td>
+                            <td th:text="${limp.apellido}"></td>
+                            <td th:text="${limp.correo}"></td>
+                            <td th:text="${limp.celular}"></td>
+                            <td>
+                                <span class="badge text-bg-success" th:if="${limp.activo}">Activo</span>
+                                <span class="badge text-bg-secondary" th:unless="${limp.activo}">Inactivo</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <a th:href="@{/detalleLimp(id=${limp.idLimpiador})}" class="btn btn-outline-primary btn-sm" title="Ver detalles"><i class="bi bi-eye"></i> Ver</a>
+                                    <a th:href="@{/editarLimpiador(id=${limp.idLimpiador})}" class="btn btn-outline-warning btn-sm text-dark" title="Editar"><i class="bi bi-pencil"></i> Editar</a>
+                                    <form th:action="@{/eliminarLimpiador}" method="post" class="m-0"
+                                          onsubmit="return confirm('¿Eliminar este limpiador?');">
+                                        <input type="hidden" name="id" th:value="${limp.idLimpiador}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar"><i class="bi bi-trash"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(listaLimpiadores)}">
+                            <td colspan="7" class="text-center text-secondary py-4">No hay limpiadores registrados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

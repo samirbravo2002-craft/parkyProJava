@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (opcional, para los íconos de usuario y candado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            /* Fondo azul oscuro degradado (color secundario) */
+            background: linear-gradient(135deg, #0a192f 0%, #173a6e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            background-color: #ffffff;
+        }
+        .card-header-custom {
+            /* Negro con borde inferior amarillo dominante */
+            background-color: #121212;
+            color: #ffffff;
+            border-bottom: 5px solid #ffc107;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+        .btn-amarillo {
+            /* Botón amarillo dominante con texto negro para máximo contraste */
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #121212;
+            font-weight: 700;
+            transition: all 0.25s ease;
+        }
+        .btn-amarillo:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+        .form-control:focus {
+            /* Resaltado azul y amarillo al escribir */
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.35);
+        }
+        .input-group-text {
+            background-color: #121212;
+            color: #ffc107;
+            border-color: #121212;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container px-3">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+                
+                <div class="card login-card">
+                    <!-- Cabecera Negra con detalles en Amarillo -->
+                    <div class="card-header-custom">
+                        <div class="mb-2">
+                           <img th:src="@{/img/logo.png}" alt="ParkyPro" height="70">
+                        </div>
+                        <h2 class="fw-bold mb-0">Iniciar sesión</h2>
+                        <small class="text-secondary">Módulo de control · Administrador y Controlador</small>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5">
+                        <!-- Alertas de Thymeleaf estilizadas con Bootstrap -->
+                        <div class="alert alert-danger d-flex align-items-center py-2" role="alert" th:if="${param.error}">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>Correo o contraseña incorrectos, o el usuario no tiene acceso al módulo de control.</div>
+                        </div>
+
+                        <div class="alert alert-primary d-flex align-items-center py-2" role="alert" th:if="${param.logout}">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <div>Cerraste sesión correctamente.</div>
+                        </div>
+
+                        <!-- Se inicia sesión con el correo y la contraseña de la tabla usuario -->
+                        <form th:action="@{/login}" method="post">
+                            
+                            <div class="mb-3">
+                                <label for="username" class="form-label fw-semibold text-dark">Correo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                    <input type="text" class="form-control form-control-lg fs-6" id="username" name="username" placeholder="tucorreo@ejemplo.com" autocomplete="username" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-semibold text-dark">Contraseña</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                                    <input type="password" class="form-control form-control-lg fs-6" id="password" name="password" placeholder="••••••••" required>
+                                </div>
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-amarillo btn-lg">
+                                    Entrar <i class="bi bi-box-arrow-in-right ms-1"></i>
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
